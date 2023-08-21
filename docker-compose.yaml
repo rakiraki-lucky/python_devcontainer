@@ -1,0 +1,58 @@
+version: "1.0"
+services:
+  web-summarizer-python:
+    build:
+      args:
+        - USERNAME=$USERNAME
+        - USER_UID=$USER_UID
+        - USER_GID=$USER_GID
+      context: ./
+      dockerfile: Dockerfile
+    image: web-summarizer-python
+    container_name: web-summarizer-python
+    environment:
+      PS1: \[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[01;33m\]\$$(__git_ps1 " (%s)")\n\[\033[00;37m\]\$$
+      REDIS_IP: 172.16.0.3
+    volumes:
+      - web-summarizer-python-workspace:/workspace
+      - web-summarizer-python-bashhistory:/commandhistory
+      - web-summarizer-python-home:/home
+    tty: true
+    init: true
+    depends_on:
+      - web-summarizer-redis
+    networks:
+      web-summarizer-network:
+        ipv4_address: 172.16.0.2
+    ports:
+      - 8080:8080
+
+  web-summarizer-redis:
+    image: redis
+    container_name: web-summarizer-redis
+    volumes:
+      - web-summarizer-redis-volume:/data
+    networks:
+      web-summarizer-network:
+        ipv4_address: 172.16.0.3
+    ports:
+      - 6379:6379
+
+volumes:
+  web-summarizer-python-workspace:
+    name: web-summarizer-python-workspace
+  web-summarizer-python-bashhistory:
+    name: web-summarizer-python-bashhistory
+  web-summarizer-python-home:
+    name: web-summarizer-python-home
+  web-summarizer-redis-volume:
+    name: web-summarizer-redis-volume
+
+networks:
+  web-summarizer-network:
+    name: web-summarizer-network
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.0.0/28
