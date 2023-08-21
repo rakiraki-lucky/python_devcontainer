@@ -1,0 +1,2 @@
+# python_devcontainer
+pythonアプリ開発用のdevcontainer構築
